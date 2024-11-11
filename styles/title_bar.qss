@@ -1,0 +1,95 @@
+QWidget#TitleBar {
+    background-color: #f8f8f8;
+}
+
+QLabel#AppIcon {
+    border-radius: 0;
+    border-top-left-radius: 8px;
+}
+
+QMenuBar#MenuBar {
+    padding: 7px 1px;
+    border-radius: 0;
+}
+
+QMenuBar#MenuBar::item:selected {
+    background-color: #e4e4e4;
+    border-radius: 5px;
+}
+
+QMenuBar#MenuBar QMenu {
+    background-color: #ffffff;
+    border-radius: 7px;
+    border: 1px solid #cecece;
+    padding: 4px;
+}
+
+QMenuBar#MenuBar QMenu::item {
+    color: #1e1e1e;
+    padding: 6px 26px;
+}
+
+QMenuBar#MenuBar QMenu::item:selected {
+    background-color: #005fb8;
+    color: #ffffff;
+    border-radius: 4px;
+}
+
+QPushButton#SearchButton {
+    font-size: 12px;
+    padding-top: 4px;
+    padding-bottom: 4px;
+    border-radius: 6px;
+    background-color: #ebebeb;
+    color: #8b949e;
+    border: 1px solid #d3d5d8;
+}
+
+QPushButton#SearchButton:hover {
+    background-color: #e5e5e5;
+    border: 1px solid #ced0d3;
+    color: #1e1e1e;
+}
+
+QPushButton#MenuBarButton {
+    width: 22px;
+    height: 22px;
+    border-radius: 4px;
+    margin-right: 4px;
+}
+
+QPushButton#MenuBarButton:hover {
+    background-color: #e4e4e4;
+}
+
+QPushButton#MenuBarButton:pressed {
+    background-color: #dedede;
+}
+
+QToolButton#CloseToolButton {
+    border: none;
+    border-radius: 0;
+    border-top-right-radius: 8px;
+}
+
+QToolButton#CloseToolButton:hover {
+    background-color: #e81123;
+}
+
+QToolButton#CloseToolButton:pressed {
+    background-color: #ff1216;
+}
+
+QToolButton#ToolButton {
+    color: white;
+    border: none;
+    border-radius: 0;
+}
+
+QToolButton#ToolButton:hover {
+    background-color: #d7d7d7;
+}
+
+QToolButton#ToolButton:pressed {
+    background-color: #a3a3a3;
+}

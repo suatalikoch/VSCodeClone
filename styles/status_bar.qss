@@ -1,0 +1,50 @@
+QWidget#StatusBar {
+    background-color: #f8f8f8;
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+}
+
+QWidget#StatusBar QLabel {
+    color: #3b3b3b;
+    margin-right: 4px;
+}
+
+QPushButton#RemoteWindowButton {
+    width: 47px;
+    height: 22px;
+    margin-right: 4px;
+    border-radius: 0;
+    border-bottom-left-radius: 8px;
+    background-color: #005fb7;
+}
+
+QPushButton#RemoteWindowButton:hover {
+    background-color: #1f72c1;
+}
+
+QPushButton#RemoteWindowButton:pressed {
+    background-color: #2e7cc5;
+}
+
+QPushButton#StatusBarButton {
+    width: 22px;
+    height: 22px;
+    margin-right: 4px;
+    border-radius: 0;
+}
+
+QPushButton#NotificationButton {
+    width: 47px;
+    height: 22px;
+    border-radius: 0;
+    border-bottom-right-radius: 8px;
+    background-color: #e4e4e4;
+}
+
+QPushButton#NotificationButton:hover {
+    background-color: #dedede;
+}
+
+QPushButton#NotificationButton:pressed {
+    background-color: #ababab;
+}

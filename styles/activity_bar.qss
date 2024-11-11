@@ -1,0 +1,7 @@
+QLabel#ActivityBarButton {
+    border: none;
+}
+
+QWidget#ActivityBar {
+    background: #f8f8f8;
+}

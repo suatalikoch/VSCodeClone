@@ -1,0 +1,17 @@
+QTextEdit#TerminalTab {
+    background-color: #f8f8f8;
+    border: none;
+    font: 'Consolas';
+    font-size: 14px;
+    padding: 0 18px;
+}
+
+QListWidget#Suggestions {
+    border: 1px solid #e5e5e5;
+    font-size: 14px;
+}
+
+QListWidget#Suggestions::item:selected {
+    background-color: #0078d7;
+    color: white;
+}

@@ -1,0 +1,11 @@
+{
+    "commands":[
+        "run",
+        "exit",
+        "help",
+        "clear",
+        "list",
+        "status",
+        "quit"
+    ]
+}

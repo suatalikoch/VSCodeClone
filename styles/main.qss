@@ -1,0 +1,103 @@
+QMainWindow#MainWindow {
+    border-radius: 8px;
+}
+
+QTabWidget#TabBar QTabBar::close-button {
+    image: url("graphics/icons/close_tab_icon.png");
+    padding: 3px;
+    border-radius: 4px;
+}
+
+QTabWidget#TabBar QTabBar::close-button:hover {
+    background-color: #e9e9e9;
+}
+
+QTabWidget#TabBar {
+    background-color: #f8f8f8;
+}    
+
+QTabWidget#TabBar::pane {
+    background-color: #ffffff;
+    border-top: 1px solid #e5e5e5;
+}
+
+QTabWidget#TabBar QTabBar::tab {
+    height: 35px;  /* Set a fixed height for all tabs */
+    background: #f8f8f8;
+    padding-left: 15px;
+    padding-right: 15px;
+    color: #868686;
+    border-right: 1px solid #e5e5e5;
+}
+
+QTabWidget#TabBar QTabBar::tab:selected {
+    background: #ffffff;  /* Background for selected tab */
+    color: #3b3b3b;
+    border-top: 1px solid #005fb8; /* Blue border on top when selected */
+}
+
+QTabWidget#TabBar QTabBar::tab:hover {
+    background: #ffffff;  /* Background for hovered tab */
+}
+
+QSplitter#VerticalSplitter::handle {
+    width: 0px;
+    height: 1px;
+    background-color: #e5e5e5;
+}
+
+QSplitter#VerticalSplitter::handle:vertical:hover {
+    background-color: #005fb8;
+}
+
+QSplitter#VerticalSplitter::handle:vertical:pressed {
+    background-color: #005fb8;
+}
+
+QSplitter#HorizontalSplitter::handle {
+    width: 0px;
+    height: 1px;
+    background-color: #e5e5e5;
+}
+
+QSplitter#HorizontalSplitter::handle:horizontal:hover {
+    background-color: #005fb8;
+}
+
+QSplitter#HorizontalSplitter::handle:horizontal:pressed {
+    background-color: #005fb8;
+}
+
+QWidget#Container {
+    background-color: #f8f8f8;
+    border-radius: 8px;
+    border: 1px solid #005fb8;
+}
+
+QTabWidget#PanelBar::pane {
+    border: none;
+}
+
+QTabWidget#PanelBar QTabBar::tab {
+    height: 35px;  /* Set a fixed height for all tabs */
+    background: #f8f8f8;
+    padding-left: 8px;
+    padding-right: 8px;
+    color: #868686;
+    border-top: 1px solid #f8f8f8;
+}
+
+QTabWidget#PanelBar QTabBar::tab:selected {
+    color: #3b3b3b;
+    border-top: 1px solid #005fb8; /* Border on top when selected */
+}
+
+QTextEdit#PanelTab {
+    background-color: #f8f8f8;
+    border: none;
+}
+
+QListWidget#PanelTab {
+    background-color: #f8f8f8;
+    border: none;
+}
