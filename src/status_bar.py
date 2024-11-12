@@ -2,6 +2,8 @@ from PyQt6.QtCore import Qt, QSize
 from PyQt6.QtWidgets import QHBoxLayout, QLabel, QPushButton, QSpacerItem, QSizePolicy, QTextEdit
 from PyQt6.QtGui import QIcon
 
+ICON_PATH = "resources/icons/"
+
 class StatusBar(QHBoxLayout):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -14,7 +16,7 @@ class StatusBar(QHBoxLayout):
         self.detect_language = parent.detect_language
 
         self.remote_window_button = QPushButton(parent)
-        self.remote_window_button.setIcon(QIcon("graphics/icons/remote_window_icon.png"))
+        self.remote_window_button.setIcon(QIcon(ICON_PATH + "remote_window_icon.png"))
         self.remote_window_button.setIconSize(QSize(14, 14))
         self.remote_window_button.setObjectName("RemoteWindowButton")
         self.remote_window_button.setMouseTracking(True)
@@ -22,15 +24,15 @@ class StatusBar(QHBoxLayout):
         self.remote_window_button.setToolTip("Open a Remote Window")
         self.remote_window_button.setCursor(Qt.CursorShape.PointingHandCursor)
 
-        self.error_button = StatusBarButton("graphics/icons/error_icon.png", QSize(14, 14))
+        self.error_button = StatusBarButton(ICON_PATH + "error_icon.png", QSize(14, 14))
         self.error_button.clicked.connect(self.show_problems)
         self.error_button.setToolTip("No Problems")
 
-        self.warning_button = StatusBarButton("graphics/icons/warning_icon.png", QSize(12, 12))
+        self.warning_button = StatusBarButton(ICON_PATH + "warning_icon.png", QSize(12, 12))
         self.warning_button.clicked.connect(self.show_problems)
         self.warning_button.setToolTip("No Problems")
 
-        self.port_forward_button = StatusBarButton("graphics/icons/port_forward_icon.png", QSize(14, 14))
+        self.port_forward_button = StatusBarButton(ICON_PATH + "port_forward_icon.png", QSize(14, 14))
         self.port_forward_button.clicked.connect(self.show_ports)
         self.port_forward_button.setToolTip("No Ports Forwarded")
 
@@ -59,7 +61,7 @@ class StatusBar(QHBoxLayout):
         self.version_label.setCursor(Qt.CursorShape.PointingHandCursor)
 
         self.notification_button = QPushButton(parent)
-        self.notification_button.setIcon(QIcon("graphics/icons/notification_icon.png"))
+        self.notification_button.setIcon(QIcon(ICON_PATH + "notification_icon.png"))
         self.notification_button.setIconSize(QSize(12, 12))
         self.notification_button.setObjectName("NotificationButton")
         self.notification_button.setMouseTracking(True)

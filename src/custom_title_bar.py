@@ -2,6 +2,8 @@ from PyQt6.QtGui import QIcon, QAction
 from PyQt6.QtCore import QSize, Qt, pyqtSignal
 from PyQt6.QtWidgets import QHBoxLayout, QLabel, QToolButton, QPushButton, QWidget, QSpacerItem, QSizePolicy
 
+ICON_PATH = "resources/icons/"
+
 class CustomTitleBar(QWidget):
     # Define signals
     mousePressed = pyqtSignal()
@@ -59,16 +61,10 @@ class CustomTitleBar(QWidget):
         self.start_pos = None
         self.main_window = parent
 
-        title_bar_layout = QHBoxLayout(self)
-        title_bar_layout.setContentsMargins(0, 0, 0, 0)
-        title_bar_layout.setSpacing(0)
-
         self.title_icon = QLabel()
-        self.title_icon.setPixmap(QIcon("graphics/icons/app-icon.svg").pixmap(20, 20)) # Set size as needed
-        self.title_icon.setContentsMargins(8, 0, 8, 0)
+        self.title_icon.setPixmap(QIcon(ICON_PATH + "app-icon.svg").pixmap(20, 20)) # Set size as needed
+        self.title_icon.setContentsMargins(13, 0, 13, 0)
         self.title_icon.setObjectName("AppIcon")
-
-        title_bar_layout.addWidget(self.title_icon)
 
         menu_bar = parent.menuBar()
         menu_bar.setObjectName("MenuBar")
@@ -323,12 +319,10 @@ class CustomTitleBar(QWidget):
         self.add_actions_to_menu(terminal_menu, terminal_actions)
         self.add_actions_to_menu(help_menu, help_actions)
 
-        title_bar_layout.addWidget(menu_bar, 0, Qt.AlignmentFlag.AlignVCenter)
-
         self.connect_signals(parent)
 
         self.go_back_button = QPushButton(self)
-        self.go_back_button.setIcon(QIcon("graphics/icons/back_icon.png"))
+        self.go_back_button.setIcon(QIcon(ICON_PATH + "back_icon.png"))
         self.go_back_button.setIconSize(QSize(18, 18))
         self.go_back_button.setObjectName("MenuBarButton")
         self.go_back_button.clicked.connect(self.go_back)
@@ -336,7 +330,7 @@ class CustomTitleBar(QWidget):
         self.go_back_button.setCursor(Qt.CursorShape.PointingHandCursor)
 
         self.go_forward_button = QPushButton(self)
-        self.go_forward_button.setIcon(QIcon("graphics/icons/forward_icon.png"))
+        self.go_forward_button.setIcon(QIcon(ICON_PATH + "forward_icon.png"))
         self.go_forward_button.setIconSize(QSize(18, 18))
         self.go_forward_button.setObjectName("MenuBarButton")
         self.go_forward_button.clicked.connect(self.go_forward)
@@ -345,15 +339,15 @@ class CustomTitleBar(QWidget):
         self.go_forward_button.setDisabled(True)
 
         self.search_button = QPushButton("Python", self)
-        self.search_button.setMaximumWidth(400)
-        self.search_button.setIcon(QIcon("graphics/icons/search_icon.png"))
+        self.search_button.setMaximumWidth(600)
+        self.search_button.setIcon(QIcon(ICON_PATH + "search_icon.png"))
         self.search_button.setObjectName("SearchButton")
         self.search_button.clicked.connect(self.search)
         self.search_button.setToolTip("Search Python - app.py - Python - Visual Studio Code")
         self.search_button.setCursor(Qt.CursorShape.PointingHandCursor)
 
         self.side_bar_toggle_button = QPushButton(self)
-        self.side_bar_toggle_button.setIcon(QIcon("graphics/icons/side_bar_icon.png"))
+        self.side_bar_toggle_button.setIcon(QIcon(ICON_PATH + "side_bar_icon.png"))
         self.side_bar_toggle_button.setIconSize(QSize(18, 18))
         self.side_bar_toggle_button.setObjectName("MenuBarButton")
         self.side_bar_toggle_button.clicked.connect(self.toggle_primary_side_bar)
@@ -361,7 +355,7 @@ class CustomTitleBar(QWidget):
         self.side_bar_toggle_button.setCursor(Qt.CursorShape.PointingHandCursor)
 
         self.panel_toggle_button = QPushButton(self)
-        self.panel_toggle_button.setIcon(QIcon("graphics/icons/panel_icon.png"))
+        self.panel_toggle_button.setIcon(QIcon(ICON_PATH + "panel_icon.png"))
         self.panel_toggle_button.setIconSize(QSize(18, 18))
         self.panel_toggle_button.setObjectName("MenuBarButton")
         self.panel_toggle_button.clicked.connect(self.toggle_panel)
@@ -369,7 +363,7 @@ class CustomTitleBar(QWidget):
         self.panel_toggle_button.setCursor(Qt.CursorShape.PointingHandCursor)
 
         self.secondary_bar_toggle_button = QPushButton(self)
-        self.secondary_bar_toggle_button.setIcon(QIcon("graphics/icons/secondary_bar_icon.png"))
+        self.secondary_bar_toggle_button.setIcon(QIcon(ICON_PATH + "secondary_bar_icon.png"))
         self.secondary_bar_toggle_button.setIconSize(QSize(18, 18))
         self.secondary_bar_toggle_button.setObjectName("MenuBarButton")
         self.secondary_bar_toggle_button.clicked.connect(self.toggle_secondary_side_bar)
@@ -377,47 +371,65 @@ class CustomTitleBar(QWidget):
         self.secondary_bar_toggle_button.setCursor(Qt.CursorShape.PointingHandCursor)
 
         self.customize_layout_button = QPushButton(self)
-        self.customize_layout_button.setIcon(QIcon("graphics/icons/customize_layout_icon.png"))
+        self.customize_layout_button.setIcon(QIcon(ICON_PATH + "customize_layout_icon.png"))
         self.customize_layout_button.setIconSize(QSize(18, 18))
         self.customize_layout_button.setObjectName("MenuBarButton")
         self.customize_layout_button.clicked.connect(self.customize_layout)
         self.customize_layout_button.setToolTip("Customize layout...")
         self.customize_layout_button.setCursor(Qt.CursorShape.PointingHandCursor)
 
-        title_bar_layout.addSpacerItem(QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum))
-        title_bar_layout.addWidget(self.go_back_button)
-        title_bar_layout.addWidget(self.go_forward_button)
-        title_bar_layout.addWidget(self.search_button, 1)
-        title_bar_layout.addSpacerItem(QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum))
-        title_bar_layout.addWidget(self.side_bar_toggle_button)
-        title_bar_layout.addWidget(self.panel_toggle_button)
-        title_bar_layout.addWidget(self.secondary_bar_toggle_button)
-        title_bar_layout.addWidget(self.customize_layout_button)
+        title_bar_layout_left = QHBoxLayout()
+        title_bar_layout_left.addWidget(self.title_icon)
+        title_bar_layout_left.addWidget(menu_bar, 0, Qt.AlignmentFlag.AlignVCenter)
+
+        title_bar_layout_center = QHBoxLayout()
+        title_bar_layout_center.addSpacerItem(QSpacerItem(10, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum))
+        title_bar_layout_center.addWidget(self.go_back_button)
+        title_bar_layout_center.addWidget(self.go_forward_button)
+        title_bar_layout_center.addWidget(self.search_button, 1)
+
+        title_bar_layout_right = QHBoxLayout()
+        title_bar_layout_right.addWidget(self.side_bar_toggle_button)
+        title_bar_layout_right.addWidget(self.panel_toggle_button)
+        title_bar_layout_right.addWidget(self.secondary_bar_toggle_button)
+        title_bar_layout_right.addWidget(self.customize_layout_button)
+
+        title_bar_layout = QHBoxLayout(self)
+        title_bar_layout.setContentsMargins(0, 0, 0, 0)
+        title_bar_layout.setSpacing(0)
+        title_bar_layout.addLayout(title_bar_layout_left)
+        title_bar_layout.addLayout(title_bar_layout_center)
+        title_bar_layout.addSpacerItem(QSpacerItem(20, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum))
+        title_bar_layout.addLayout(title_bar_layout_right)
+
+        title_bar_layout.setStretch(0, 1)  # Stretch left layout
+        title_bar_layout.setStretch(1, 2)  # Stretch center layout (to fill remaining space)
+        title_bar_layout.setStretch(2, 1)  # Stretch right layout (to match left layout)
 
         # Min button
         self.min_button = QToolButton(self)
-        self.min_button.setIcon(QIcon("graphics/icons/minimize_icon.png"))
+        self.min_button.setIcon(QIcon(ICON_PATH + "minimize_icon.png"))
         self.min_button.clicked.connect(self.window().showMinimized)
         self.min_button.setToolTip("Minimize")
         self.min_button.setToolTipDuration(5000)
 
         # Max button
         self.max_button = QToolButton(self)
-        self.max_button.setIcon(QIcon("graphics/icons/maximize_icon.png"))
+        self.max_button.setIcon(QIcon(ICON_PATH + "maximize_icon.png"))
         self.max_button.clicked.connect(self.window().showMaximized)
         self.max_button.setToolTip("Maximize")
         self.max_button.setToolTipDuration(5000)
 
         # Close button
         self.close_button = QToolButton(self)
-        self.close_button.setIcon(QIcon("graphics/icons/close_icon.png"))
+        self.close_button.setIcon(QIcon(ICON_PATH + "close_icon.png"))
         self.close_button.clicked.connect(self.window().close)
         self.close_button.setToolTip("Close")
         self.close_button.setToolTipDuration(5000)
 
         # Normal button
         self.normal_button = QToolButton(self)
-        self.normal_button.setIcon(QIcon("graphics/icons/restore_icon.png"))
+        self.normal_button.setIcon(QIcon(ICON_PATH + "restore_icon.png"))
         self.normal_button.clicked.connect(self.window().showNormal)
         self.normal_button.setVisible(False)
         self.normal_button.setToolTip("Normal")
@@ -438,7 +450,7 @@ class CustomTitleBar(QWidget):
             else:
                 button.setObjectName("ToolButton")
 
-            title_bar_layout.addWidget(button)
+            title_bar_layout_right.addWidget(button)
 
     def connect_signals(self, parent):
         """Connect all signals to their corresponding slots."""

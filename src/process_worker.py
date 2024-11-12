@@ -23,7 +23,7 @@ class ProcessWorker(QThread):
                 self.fetch_process_data(proc)  # Fetch the data for each process
 
             self.data_updated.emit(processes)  # Emit the updated process list to the main thread
-            self.msleep(1000)  # Sleep for 1 second before the next fetch
+            self.msleep(10000)  # Sleep for 1 second before the next fetch
 
     def stop(self):
         """Stop the worker thread."""

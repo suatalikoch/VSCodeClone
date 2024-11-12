@@ -1,0 +1,9 @@
+{
+    "language": "en",
+    "theme": "light",
+    "components": {
+      "activity_bar": "activity_bar.json",
+      "status_bar": "status_bar.json",
+      "side_bar": "side_bar.json"
+    }
+  }

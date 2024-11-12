@@ -3,7 +3,7 @@ QMainWindow#MainWindow {
 }
 
 QTabWidget#TabBar QTabBar::close-button {
-    image: url("graphics/icons/close_tab_icon.png");
+    image: url("resources/icons/close_tab_icon.png");
     padding: 3px;
     border-radius: 4px;
 }

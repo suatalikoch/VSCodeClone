@@ -5,24 +5,24 @@ from PyQt6.QtWidgets import (QApplication, QMainWindow, QHBoxLayout, QVBoxLayout
                              QSplitter, QTextEdit, QFileDialog, QListWidget, QListWidgetItem, QMessageBox)
 from PyQt6.QtGui import QCursor, QIcon, QDrag, QColor, QDesktopServices, QGuiApplication
 
-from custom_title_bar import CustomTitleBar
-from side_bar import SideBar
-from text_editor import TextEditor
-from secondary_bar import SecondaryBar
-from activity_bar import ActivityBar
-from status_bar import StatusBar
-from pylint_worker import PylintWorker
-from python_highlighter import PythonHighlighter
-from terminal import TerminalWidget
-from process_worker import ProcessMonitor
-from developer_tools import DeveloperToolsPanel, HoverEventFilter
-from issue_reporter import IssueReporterWindow
+from src.custom_title_bar import CustomTitleBar
+from src.side_bar import SideBar
+from src.text_editor import TextEditor
+from src.secondary_bar import SecondaryBar
+from src.activity_bar import ActivityBar
+from src.status_bar import StatusBar
+from src.pylint_worker import PylintWorker
+from src.python_highlighter import PythonHighlighter
+from src.terminal import TerminalWidget
+from src.process_worker import ProcessMonitor
+from src.developer_tools import DeveloperToolsPanel, HoverEventFilter
+from src.issue_reporter import IssueReporterWindow
 
 logging.basicConfig(level=logging.INFO, format="[%(asctime)s] [%(levelname)s] - %(message)s", datefmt="%d/%m/%Y %H:%M:%S")
 
 COMPANY_NAME = "AsteiliaCorporation"
 APPLICATION_NAME = "VSCodeClone"
-ICON_PATH = "graphics/icons"
+ICON_PATH = "resources/icons/"
 MINIMUM_WINDOW_WIDTH = 400
 MINIMUM_WINDOW_HEIGHT = 270
 DEFAULT_TAB_HEIGHT = 35
@@ -42,14 +42,6 @@ class MainWindow(QMainWindow):
         self.initialize_tabs()
         self.apply_styles()
 
-        ############ - Should be placed elsewhere - ###################
-        self.hover_filter = HoverEventFilter(self)
-        self.installEventFilter(self.hover_filter)
-
-        for child in self.findChildren(QWidget):
-            child.installEventFilter(self.hover_filter)
-        ###############################################################
-
     def setup_ui(self):
         """Main method to set up the user interface. Handles window properties, component initialization, and layout creation."""
         self._setup_window_properties()
@@ -57,6 +49,12 @@ class MainWindow(QMainWindow):
 
         self.layout = self.create_main_layout()
         self.setCentralWidget(self.layout)
+
+        self.hover_filter = HoverEventFilter(self)
+        self.installEventFilter(self.hover_filter)
+
+        for child in self.findChildren(QWidget):
+            child.installEventFilter(self.hover_filter)
 
     def _setup_window_properties(self):
         """Configures the window properties such as size, minimum size, flags, and attributes."""
@@ -171,10 +169,12 @@ class MainWindow(QMainWindow):
 
             widget = self.create_text_edit(file_path)
 
-            icon_index = self.side_bar.file_system_model.index(file_name)
+            self.file_paths[widget] = file_path
+
+            icon_index = self.side_bar.file_system_model.index(file_path)
             icon = self.side_bar.file_system_model.data(icon_index, role=Qt.ItemDataRole.DecorationRole)
 
-            self.tabs.addTab(widget, QIcon(icon), QFileInfo(file_name).fileName())
+            self.tabs.addTab(widget, QIcon(icon), file_name)
             self.tabs.tabBar().setTabToolTip(self.tabs.indexOf(widget), file_path)
 
     def load_recent_files(self):
@@ -690,8 +690,9 @@ class MainWindow(QMainWindow):
         # Create a new tab with a text editor
         welcome_tab = QWidget()
 
-        self.tabs.addTab(welcome_tab, "Welcome")
+        self.tabs.addTab(welcome_tab, QIcon(ICON_PATH + "app_icon.png"), "Welcome")
         self.tabs.setCurrentWidget(welcome_tab)  # Switch to the new tab
+        self.tabs.tabBar().setTabToolTip(self.tabs.indexOf(welcome_tab), "Welcome")
 
         self.is_welcome_open = True
 

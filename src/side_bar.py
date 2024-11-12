@@ -4,9 +4,8 @@ from PyQt6.QtCore import Qt, QFileInfo
 from PyQt6.QtWidgets import QTreeView, QAbstractItemView
 from PyQt6.QtGui import QIcon, QFileSystemModel
 
-from text_editor import TextEditor
-
-from python_highlighter import PythonHighlighter
+from src.text_editor import TextEditor
+from src.python_highlighter import PythonHighlighter
 
 class SideBar(QTreeView):
     def __init__(self, parent):
