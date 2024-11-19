@@ -22,6 +22,11 @@ class CustomTitleBar(QWidget):
     close_window_requested = pyqtSignal()
     exit_requested = pyqtSignal()
 
+    search_requested = pyqtSignal()
+    source_control_requested = pyqtSignal()
+    run_and_debug_requested = pyqtSignal()
+    extensions_requested = pyqtSignal()
+    testing_requested = pyqtSignal()
     problems_requested = pyqtSignal()
     output_requested = pyqtSignal()
     debug_console_requested = pyqtSignal()
@@ -63,7 +68,7 @@ class CustomTitleBar(QWidget):
 
         self.title_icon = QLabel()
         self.title_icon.setPixmap(QIcon(ICON_PATH + "app-icon.svg").pixmap(20, 20)) # Set size as needed
-        self.title_icon.setContentsMargins(13, 0, 13, 0)
+        self.title_icon.setContentsMargins(13, 0, 12, 0)
         self.title_icon.setObjectName("AppIcon")
 
         menu_bar = parent.menuBar()
@@ -289,6 +294,11 @@ class CustomTitleBar(QWidget):
         file_actions[26].triggered.connect(self.close_window_requested.emit)
         file_actions[28].triggered.connect(self.exit_requested.emit)
 
+        view_actions[6].triggered.connect(self.search_requested.emit)
+        view_actions[7].triggered.connect(self.source_control_requested.emit)
+        view_actions[8].triggered.connect(self.run_and_debug_requested.emit)
+        view_actions[9].triggered.connect(self.extensions_requested.emit)
+        view_actions[10].triggered.connect(self.testing_requested.emit)
         view_actions[12].triggered.connect(self.problems_requested.emit)
         view_actions[13].triggered.connect(self.output_requested.emit)
         view_actions[14].triggered.connect(self.debug_console_requested.emit)
@@ -338,12 +348,12 @@ class CustomTitleBar(QWidget):
         self.go_forward_button.setCursor(Qt.CursorShape.PointingHandCursor)
         self.go_forward_button.setDisabled(True)
 
-        self.search_button = QPushButton("Python", self)
-        self.search_button.setMaximumWidth(600)
+        self.search_button = QPushButton(self.main_window.APPLICATION_NAME, self)
+        self.search_button.setMaximumSize(600, 24)
         self.search_button.setIcon(QIcon(ICON_PATH + "search_icon.png"))
         self.search_button.setObjectName("SearchButton")
         self.search_button.clicked.connect(self.search)
-        self.search_button.setToolTip("Search Python - app.py - Python - Visual Studio Code")
+        self.search_button.setToolTip(f"Search {self.main_window.APPLICATION_NAME} - app.py - {self.main_window.APPLICATION_NAME} - Visual Studio Code")
         self.search_button.setCursor(Qt.CursorShape.PointingHandCursor)
 
         self.side_bar_toggle_button = QPushButton(self)
@@ -481,6 +491,11 @@ class CustomTitleBar(QWidget):
 
     def _get_view_signals(self, parent):
         return {
+            self.search_requested: parent.activity_bar.show_search,
+            self.source_control_requested: parent.activity_bar.show_source_control,
+            self.run_and_debug_requested: parent.activity_bar.show_run_and_debug,
+            self.extensions_requested: parent.activity_bar.show_extensions,
+            self.testing_requested: parent.activity_bar.show_testing,
             self.problems_requested: parent.show_problems,
             self.output_requested: parent.show_output,
             self.debug_console_requested: parent.show_debug_console,
@@ -551,6 +566,8 @@ class CustomTitleBar(QWidget):
 
     def toggle_primary_side_bar(self):
         if self.main_window.side_bar.isHidden():
+            if self.main_window.splitter.widget(0) != self.main_window.side_bar:
+                self.main_window.splitter.replaceWidget(0, self.main_window.side_bar)
             self.main_window.side_bar.show()
 
             return

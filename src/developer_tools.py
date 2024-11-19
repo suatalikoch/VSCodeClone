@@ -16,6 +16,9 @@ class DeveloperToolsPanel(QWidget):
 
     def update_widget_info(self, widget):
         """Update the panel with detailed widget information when hovered."""
+        if not self.hasFocus():
+            return
+
         widget_info = f"Widget Type: {widget.__class__.__name__}\n"
         widget_info += f"Object Name: {widget.objectName()}\n"
         widget_info += f"Geometry: {widget.geometry()}\n"

@@ -10,7 +10,7 @@ QWidget#StatusBar QLabel {
 }
 
 QPushButton#RemoteWindowButton {
-    width: 47px;
+    width: 46px;
     height: 22px;
     margin-right: 4px;
     border-radius: 0;
@@ -34,7 +34,7 @@ QPushButton#StatusBarButton {
 }
 
 QPushButton#NotificationButton {
-    width: 47px;
+    width: 46px;
     height: 22px;
     border-radius: 0;
     border-bottom-right-radius: 8px;

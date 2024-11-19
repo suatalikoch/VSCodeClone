@@ -2,3 +2,25 @@ QTreeView#SideBar {
     background-color: #f8f8f8;
     border: none;
 }
+
+QTreeView#SideBar::item:hover {
+    background-color: #f2f2f2;
+}
+
+/*
+QTreeView#SideBar::item:focus {
+    border: 1px solid #005fb8;
+}
+*/
+
+QTreeView#SideBar::item:selected {
+    background-color: #e4e6f1;
+    color: black;
+}
+
+/*
+QTreeView::branch {
+    border-right: 1px solid #d5d5d5;
+    background-color: transparent;
+}
+*/

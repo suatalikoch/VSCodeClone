@@ -1,18 +1,17 @@
 import sys, subprocess, os, shutil, chardet, logging
 
-from PyQt6.QtCore import QSize, Qt, QEvent, QRect, QFileInfo, QMimeData, QUrl, QSettings, QPoint
+from PyQt6.QtCore import QSize, Qt, QEvent, QRect, QFileInfo, QMimeData, QUrl, QSettings, QPoint, pyqtSignal
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QHBoxLayout, QVBoxLayout, QTabWidget, QWidget, QFrame,
                              QSplitter, QTextEdit, QFileDialog, QListWidget, QListWidgetItem, QMessageBox)
 from PyQt6.QtGui import QCursor, QIcon, QDrag, QColor, QDesktopServices, QGuiApplication
 
 from src.custom_title_bar import CustomTitleBar
 from src.side_bar import SideBar
-from src.text_editor import TextEditor
+from src.monaco_editor import MonacoEditor
 from src.secondary_bar import SecondaryBar
 from src.activity_bar import ActivityBar
 from src.status_bar import StatusBar
 from src.pylint_worker import PylintWorker
-from src.python_highlighter import PythonHighlighter
 from src.terminal import TerminalWidget
 from src.process_worker import ProcessMonitor
 from src.developer_tools import DeveloperToolsPanel, HoverEventFilter
@@ -20,17 +19,21 @@ from src.issue_reporter import IssueReporterWindow
 
 logging.basicConfig(level=logging.INFO, format="[%(asctime)s] [%(levelname)s] - %(message)s", datefmt="%d/%m/%Y %H:%M:%S")
 
-COMPANY_NAME = "AsteiliaCorporation"
-APPLICATION_NAME = "VSCodeClone"
-ICON_PATH = "resources/icons/"
-MINIMUM_WINDOW_WIDTH = 400
-MINIMUM_WINDOW_HEIGHT = 270
-DEFAULT_TAB_HEIGHT = 35
-DEFAULT_TAB_PADDING = 15
-
 class MainWindow(QMainWindow):
+    COMPANY_NAME = "AsteiliaCorporation"
+    APPLICATION_NAME = "VSCodeClone"
+    ICON_PATH = "resources/icons/"
+    MINIMUM_WINDOW_WIDTH = 400
+    MINIMUM_WINDOW_HEIGHT = 270
+    DEFAULT_TAB_HEIGHT = 35
+    DEFAULT_TAB_PADDING = 15
+
+    handleReleaseSignal = pyqtSignal()
+
     def __init__(self):
         super().__init__()
+
+        self.clear_recent_files()
 
         # Initialize a dictionary to keep track of file paths for each tab
         self.file_paths = {}  # Maps QTextEdit widgets to file paths
@@ -41,6 +44,11 @@ class MainWindow(QMainWindow):
         self.connect_signals()
         self.initialize_tabs()
         self.apply_styles()
+
+        ############################# - Should be removed from here -  #############################
+        self.handleReleaseSignal.connect(self.side_bar.trigger_mouse_release)
+        self.splitter.splitterMoved.connect(self.on_splitter_moved)
+        ############################################################################################
 
     def setup_ui(self):
         """Main method to set up the user interface. Handles window properties, component initialization, and layout creation."""
@@ -61,11 +69,11 @@ class MainWindow(QMainWindow):
         screen_size = QApplication.primaryScreen().size()
 
         self.resize(QSize(screen_size.width() // 2, screen_size.height() // 2))
-        self.setMinimumSize(QSize(MINIMUM_WINDOW_WIDTH, MINIMUM_WINDOW_HEIGHT))
+        self.setMinimumSize(QSize(self.MINIMUM_WINDOW_WIDTH, self.MINIMUM_WINDOW_HEIGHT))
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         self.setObjectName("MainWindow")
-        self.setWindowTitle(APPLICATION_NAME)
+        self.setWindowTitle(self.APPLICATION_NAME)
         self.setFocus()
         self.setMouseTracking(True)
 
@@ -176,17 +184,24 @@ class MainWindow(QMainWindow):
 
             self.tabs.addTab(widget, QIcon(icon), file_name)
             self.tabs.tabBar().setTabToolTip(self.tabs.indexOf(widget), file_path)
+            self.tabs.setStyleSheet(
+                """
+                    QTabWidget#TabBar::pane {
+                        border-top: 1px solid #e5e5e5;
+                    }
+                """
+            )
 
     def load_recent_files(self):
         """Load the list of recently opened files."""
-        settings = QSettings(COMPANY_NAME, APPLICATION_NAME)
+        settings = QSettings(self.COMPANY_NAME, self.APPLICATION_NAME)
         recent_files = settings.value("recentFiles", [])
 
         return recent_files
 
     def save_recent_file(self, file_path):
         """Saves the recently opened file."""
-        settings = QSettings(COMPANY_NAME, "VSCodeClone")
+        settings = QSettings(self.COMPANY_NAME, self.APPLICATION_NAME)
         recent_files = settings.value("recentFiles", [])
 
         if file_path not in recent_files:
@@ -196,7 +211,7 @@ class MainWindow(QMainWindow):
 
     def clear_recent_files(self):
         """Clear the list of recent files in the settings."""
-        settings = QSettings(COMPANY_NAME, APPLICATION_NAME)
+        settings = QSettings(self.COMPANY_NAME, self.APPLICATION_NAME)
 
         # Clear the recent files list in the settings
         settings.remove("recentFiles")  # This removes the "recentFiles" key entirely
@@ -218,14 +233,12 @@ class MainWindow(QMainWindow):
         return None
 
     def create_text_edit(self, file_path=None):
-        widget = TextEditor("TextEditor")
+        widget = MonacoEditor(self)
 
         if file_path:
             with open(file_path, 'r') as file:
                 content = file.read()
                 widget.setText(content)
-
-        self.highlighter = PythonHighlighter(widget.document())
 
         # Connect the textChanged signal to a method that checks for problems and updates status_bar
         widget.textChanged.connect(self.check_for_problems)
@@ -294,7 +307,6 @@ class MainWindow(QMainWindow):
         self.panel = self.create_additional_tabs_panel()
         self.panel.tabBar().setCursor(Qt.CursorShape.PointingHandCursor)
 
-        self.title_bar = CustomTitleBar(self)
         self.tabs = self.create_tabs()
         self.status_bar = StatusBar(self)
         self.side_bar = SideBar(self)
@@ -320,9 +332,10 @@ class MainWindow(QMainWindow):
         self.splitter.setObjectName("HorizontalSplitter")
 
         self.activity_bar = ActivityBar(self)
+        self.title_bar = CustomTitleBar(self)
 
         self.activity_bar_widget = QWidget()
-        self.activity_bar_widget.setFixedWidth(47)
+        self.activity_bar_widget.setFixedWidth(46)
         self.activity_bar_widget.setObjectName("ActivityBar")
         self.activity_bar_widget.setLayout(self.activity_bar)
         self.activity_bar_widget.setMouseTracking(True)
@@ -413,17 +426,16 @@ class MainWindow(QMainWindow):
 
     def create_new_tab(self, initial_content=None):
         """Creates a new tab with a text editor and optional initial content."""
-        new_tab = TextEditor("NewTab")
+        new_tab = MonacoEditor(self)
 
         if initial_content:
-            new_tab.append(initial_content)
+            new_tab.set_content(initial_content)
         else:
-            new_tab.append("Select a language, or fill with template, or open a different editor to get started.")
-            new_tab.append("Start typing to dismiss or don't show this again.")
+            new_tab.append_content("Select a language, or fill with template, or open a different editor to get started.\nStart typing to dismiss or don't show this again.")
 
         # Connect the textChanged signal to a method that checks for problems
-        new_tab.textChanged.connect(self.check_for_problems)
-        new_tab.cursorPositionChanged.connect(self.status_bar.update_status_bar)
+        # - # new_tab.textChanged.connect(self.check_for_problems)
+        # - # new_tab.cursorPositionChanged.connect(self.status_bar.update_status_bar)
 
         self.untitled_tab_count += 1
 
@@ -432,6 +444,14 @@ class MainWindow(QMainWindow):
         self.tabs.addTab(new_tab, tab_name)
         self.tabs.setCurrentWidget(new_tab)  # Switch to the new tab
         self.tabs.tabBar().setTabToolTip(self.tabs.indexOf(new_tab), tab_name)
+
+        self.tabs.setStyleSheet(
+            """
+                QTabWidget#TabBar::pane {
+                    border-top: 1px solid #e5e5e5;
+                }
+            """
+        )
 
     def create_new_window(self):
         # Create a new instance of MainWindow
@@ -458,28 +478,27 @@ class MainWindow(QMainWindow):
                 return
 
             # Add logic to handle the opened file, e.g., opening it in a new tab
-            new_tab = TextEditor("NewTab")
+            new_tab = MonacoEditor(self)
 
             # Load the file content
             try:
                 with open(file_name, 'r') as file:
                     content = file.read()
-                    new_tab.setText(content)
+                    new_tab.set_content(content)
                     
                     # Connect the textChanged signal to a method that checks for problems
-                    new_tab.textChanged.connect(self.check_for_problems)
-                    new_tab.cursorPositionChanged.connect(self.status_bar.update_status_bar)
+                    #new_tab.textChanged.connect(self.check_for_problems)
+                    #new_tab.cursorPositionChanged.connect(self.status_bar.update_status_bar)
 
                     logging.info(f"Opening file: {file_name}.")
             except Exception as e:
-                new_tab.setText(f"Error loading file: {e}.")
+                new_tab.set_content(f"Error loading file: {e}.")
                 logging.error(f"Error opening file {file_name}: {e}.")
 
             # Set file path and update the recent files list
             self.file_paths[new_tab] = file_name
             self.save_recent_file(file_name)
-            self.highlighter = PythonHighlighter(new_tab.document())
-
+            
             # Set the tab icon based on the file system model
             icon_index = self.side_bar.file_system_model.index(file_name)
             icon = self.side_bar.file_system_model.data(icon_index, role=Qt.ItemDataRole.DecorationRole)
@@ -489,6 +508,14 @@ class MainWindow(QMainWindow):
             self.tabs.addTab(new_tab, QIcon(icon), tab_name)
             self.tabs.setCurrentWidget(new_tab)  # Switch to the new tab
             self.tabs.tabBar().setTabToolTip(self.tabs.indexOf(new_tab), file_name)
+
+            self.tabs.setStyleSheet(
+                """
+                    QTabWidget#TabBar::pane {
+                        border-top: 1px solid #e5e5e5;
+                    }
+                """
+            )
 
     def open_folder(self):
         """Open a folder using a file dialog and display it in the sidebar."""
@@ -505,24 +532,30 @@ class MainWindow(QMainWindow):
             logging.warning(f"No folder selected.")
 
     def save_tab(self):
-        current_index = self.tabs.currentIndex()
+        """Handles saving the currently selected tab."""
+        if self.tabs.count() <= 0:
+            logging.warning("No tab selected to save.")
 
-        if current_index < 0:
-            QMessageBox.warning(self, "Warning", "No tab selected to save.")
-            
             return
 
+        current_index = self.tabs.currentIndex()
         current_widget = self.tabs.currentWidget()
         current_file_path = self.file_paths.get(current_index)
 
         if current_file_path:
             # Save to the existing file
-            self._save_to_file(current_widget.toPlainText(), current_file_path)
+            current_widget.get_content(self._save_to_file, current_file_path)
         else:
             # Trigger Save As if no file path is stored
             self.save_as()
 
     def save_as(self):
+        """Handles 'Save As' functionality."""
+        if self.tabs.count() <= 0:
+            logging.warning("No tab selected to save.")
+
+            return
+
         options = QFileDialog.Option.ReadOnly
         file_name, _ = QFileDialog.getSaveFileName(self, "Save As", "", "All Files (*.*);;Text Files (*.txt);;Python Files (*.py)", options=options)
 
@@ -530,17 +563,23 @@ class MainWindow(QMainWindow):
             current_widget = self.tabs.currentWidget()
 
             if current_widget:
-                self._save_to_file(current_widget.toPlainText(), file_name)
+                current_widget.get_content(self._save_to_file, file_name)
                 self.file_paths[self.tabs.currentIndex()] = file_name # Store the file path for future saves
                 self.tabs.setTabText(self.tabs.currentIndex(), QFileInfo(file_name).fileName()) # Update tab name
 
     def save_all(self):
+        """Handles saving all tabs."""
+        if self.tabs.count() <= 0:
+            logging.warning("No tabs to save.")
+
+            return
+
         for index in range(self.tabs.count()):
             current_widget = self.tabs.widget(index)
             current_file_path = self.file_paths.get(index)
 
             if current_widget and current_file_path:
-                self._save_to_file(current_widget.toPlainText(), current_file_path)
+                current_widget.get_content(self._save_to_file, current_file_path)
 
     def close_editor(self):
         current_index = self.tabs.currentIndex()
@@ -560,6 +599,11 @@ class MainWindow(QMainWindow):
 
     def _save_to_file(self, content, file_path):
         """Save the content to the specified file path. Handles errors gracefully and provides feedback to the user."""
+        if content is None:
+            logging.warning(f"Content is None. Failed to save {file_path}.")
+
+            return
+        
         try:
             with open(file_path, 'w', encoding="utf-8") as file:
                 file.write(content)
@@ -572,10 +616,12 @@ class MainWindow(QMainWindow):
         if index >= 0: # Ensure the index is valid
             current_widget = self.tabs.widget(index)
 
-            # Check if the current widget has unsaved changes (optional)
-            if isinstance(current_widget, TextEditor):  # Assuming `TextEditor` is your text editor widget class
-                if current_widget.document().isModified():
-                    # Ask the user if they want to save before closing (optional)
+            # Check if the current widget has unsaved changes
+            if isinstance(current_widget, MonacoEditor):
+                current_widget.is_modified()
+                
+                if current_widget.is_modified:
+                    # Ask the user if they want to save before closing
                     response = QMessageBox.question(
                         self, "Unsaved Changes", 
                         "You have unsaved changes. Do you want to save before closing?", 
@@ -585,17 +631,16 @@ class MainWindow(QMainWindow):
 
                     if response == QMessageBox.StandardButton.Yes:
                         current_index = self.tabs.currentIndex()
-                        content = current_widget.toPlainText()
                         file_path = self.file_paths.get(current_index)
-
-                        self._save_to_file(content, file_path)
+                        print(self.file_paths)
+                        print(file_path, file_path)
+                        current_widget.get_content(self._save_to_file, file_path)
                     elif response == QMessageBox.StandardButton.Cancel:
                         return  # User chose to cancel the close operation
                     
-                
                 # Disconnect any signals related to the tab (if necessary)
-                current_widget.textChanged.disconnect(self.check_for_problems)
-                current_widget.cursorPositionChanged.disconnect(self.status_bar.update_status_bar)
+                #current_widget.textChanged.disconnect(self.check_for_problems)
+                #current_widget.cursorPositionChanged.disconnect(self.status_bar.update_status_bar)
 
             # Remove the file path associated with the tab before closing
             if current_widget in self.file_paths:
@@ -608,6 +653,15 @@ class MainWindow(QMainWindow):
                 self.is_release_notes_open = False
 
             self.tabs.removeTab(index) # Remove the tab at the given index
+
+            if self.tabs.count() == 0:
+                self.tabs.setStyleSheet(
+                    """
+                        QTabWidget#TabBar::pane {
+                            border: none;
+                        }
+                    """
+                )
 
     def show_problems(self):
         if self.panel.isHidden():
@@ -637,7 +691,6 @@ class MainWindow(QMainWindow):
         current_index = self.tabs.currentIndex()
 
         if current_index < 0:
-            QMessageBox.warning(self, "Warning", "No tab selected to run.")
             logging.warning(f"No tab selected to run.")
 
             return
@@ -690,9 +743,17 @@ class MainWindow(QMainWindow):
         # Create a new tab with a text editor
         welcome_tab = QWidget()
 
-        self.tabs.addTab(welcome_tab, QIcon(ICON_PATH + "app_icon.png"), "Welcome")
+        self.tabs.addTab(welcome_tab, QIcon(self.ICON_PATH + "app_icon.png"), "Welcome")
         self.tabs.setCurrentWidget(welcome_tab)  # Switch to the new tab
         self.tabs.tabBar().setTabToolTip(self.tabs.indexOf(welcome_tab), "Welcome")
+
+        self.tabs.setStyleSheet(
+            """
+                QTabWidget#TabBar::pane {
+                    border-top: 1px solid #e5e5e5;
+                }
+            """
+        )
 
         self.is_welcome_open = True
 
@@ -709,6 +770,14 @@ class MainWindow(QMainWindow):
 
         self.tabs.addTab(release_notes_tab, "Release Notes - 19.5.0")
         self.tabs.setCurrentWidget(release_notes_tab)  # Switch to the new tab
+
+        self.tabs.setStyleSheet(
+            """
+                QTabWidget#TabBar::pane {
+                    border-top: 1px solid #e5e5e5;
+                }
+            """
+        )
 
         self.is_release_notes_open = True
 
@@ -827,7 +896,7 @@ class MainWindow(QMainWindow):
         current_widget = self.tabs.currentWidget() # Get the current QTextEdit widget
 
         if current_widget is not None:  # Check if there's a current widget
-            code = current_widget.toPlainText() # Get the current text in the editor
+            code = current_widget.get_content() # Get the current text in the editor
 
             # Start Pylint in a separate thread
             self.pylint_worker = PylintWorker(code)
@@ -1034,7 +1103,7 @@ class MainWindow(QMainWindow):
             new_rect = self.geometry()
 
             if self.is_resizing_left:
-                if width == MINIMUM_WINDOW_WIDTH:
+                if width == self.MINIMUM_WINDOW_WIDTH:
                     if delta.x() < 0:
                         new_rect.setLeft(int(new_rect.left() + delta.x()))
                 else:
@@ -1042,7 +1111,7 @@ class MainWindow(QMainWindow):
             if self.is_resizing_right:
                 new_rect.setRight(int(new_rect.right() + delta.x()))
             if self.is_resizing_top:
-                if height == MINIMUM_WINDOW_HEIGHT:
+                if height == self.MINIMUM_WINDOW_HEIGHT:
                     if delta.y() < 0:
                         new_rect.setTop(int(new_rect.top() + delta.y()))
                 else:
@@ -1068,6 +1137,11 @@ class MainWindow(QMainWindow):
             self.is_resizing_bottom = False
 
             self.start_size = self.size() # Store the starting size
+
+    def on_splitter_moved(self, pos, index):
+        self.handleReleaseSignal.emit()
+
+        print(pos, index)
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

@@ -4,13 +4,13 @@ from PyQt6.QtCore import Qt, QFileInfo
 from PyQt6.QtWidgets import QTreeView, QAbstractItemView
 from PyQt6.QtGui import QIcon, QFileSystemModel
 
-from src.text_editor import TextEditor
-from src.python_highlighter import PythonHighlighter
+from src.monaco_editor import MonacoEditor
 
 class SideBar(QTreeView):
     def __init__(self, parent):
         super().__init__(parent)
 
+        self.main_window = parent
         self.file_system_model = FileSystemModel(self)
         self.tabs = parent.tabs
         self.save_recent_file = parent.save_recent_file
@@ -68,7 +68,7 @@ class SideBar(QTreeView):
                     return
 
             # If the file is not already opened, create a new QTextEdit widget
-            new_tab = TextEditor("TextEditor")
+            new_tab = MonacoEditor(self)
 
             logging.info(f"Opening file: {file_path}.")
 
@@ -76,18 +76,16 @@ class SideBar(QTreeView):
             try:
                 with open(file_path, 'r') as file:
                     content = file.read()
-                    new_tab.setText(content)
+                    new_tab.set_content(content)
 
                     # Connect the textChanged signal to a method that checks for problems
-                    new_tab.textChanged.connect(self.check_for_problems)
-                    new_tab.cursorPositionChanged.connect(self.update_status_bar)
+                    #new_tab.textChanged.connect(self.check_for_problems)
+                    #new_tab.cursorPositionChanged.connect(self.update_status_bar)
             except Exception as e:
-                new_tab.setText(f"Error loading file: {e}.")
+                new_tab.set_content(f"Error loading file: {e}.")
                 logging.error(f"Failed to open file {file_path}: {e}.")
 
             self.save_recent_file(file_path)
-
-            self.highlighter = PythonHighlighter(new_tab.document())
 
             icon_index = self.file_system_model.index(file_path)
             icon = self.file_system_model.data(icon_index, role=Qt.ItemDataRole.DecorationRole)
@@ -97,8 +95,42 @@ class SideBar(QTreeView):
             self.tabs.setCurrentWidget(new_tab) # Switch to the new tab
             self.tabs.tabBar().setTabToolTip(self.tabs.indexOf(new_tab), file_path)
 
+            self.tabs.setStyleSheet(
+                """
+                    QTabWidget#TabBar::pane {
+                        border-top: 1px solid #e5e5e5;
+                    }
+                """
+            )
+
             # Store the file path for this tab
             self.file_paths[new_tab] = file_path
+
+    def resizeEvent(self, event):
+        print(event.size())
+
+        if event.size().width() <= 0:
+            self.style = """
+                    QSplitter#HorizontalSplitter::handle {
+                        height: 0px;
+                    }
+                """
+        else:
+            self.style = """
+                    QSplitter#HorizontalSplitter::handle {
+                        height: 1px;
+                    }
+                """
+
+        super().resizeEvent(event)
+
+    def trigger_mouse_release(self):
+        print("triggeration?")
+
+    def mouseReleaseEvent(self, event):
+        self.main_window.splitter.setStyleSheet(self.style)
+
+        super().mouseReleaseEvent(event)
 
 class FileSystemModel(QFileSystemModel):
     def __init__(self, parent):
