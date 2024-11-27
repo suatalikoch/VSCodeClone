@@ -1,6 +1,8 @@
 from PyQt6.QtCore import Qt, QSize
-from PyQt6.QtWidgets import QHBoxLayout, QLabel, QPushButton, QSpacerItem, QSizePolicy, QTextEdit
+from PyQt6.QtWidgets import QHBoxLayout, QLabel, QPushButton, QSpacerItem, QSizePolicy
 from PyQt6.QtGui import QIcon
+
+from src.monaco_editor import MonacoEditor
 
 ICON_PATH = "resources/icons/"
 
@@ -89,38 +91,63 @@ class StatusBar(QHBoxLayout):
 
         current_widget = self.tabs.currentWidget()
 
-        if not isinstance(current_widget, QTextEdit):
+        if not isinstance(current_widget, MonacoEditor):
             return
 
-        cursor = current_widget.textCursor()
+        current_widget.page().runJavaScript(
+            """
+                function cursorPosition() {
+                    var editor = monaco.editor.getModels()[0];
+                    var position = editor.getPosition(); // Get the cursor position
+                    var line = position.lineNumber;
+                    var col = position.column;
+                    
+                    return { line, col };
+                }
+                cursorPosition();
+            """, self._on_cursor_position)
 
-        line = cursor.blockNumber() + 1
-        col = cursor.columnNumber() + 1
+        current_widget.page().runJavaScript(
+            """
+                function editorContent() {
+                    var model = monaco.editor.getModels()[0];  // Get the first editor model
+                    var text = model.getValue();  // Get the content of the model
+                    
+                    return text;
+                }
+                editorContent();
+            """, self._on_editor_content_received)
+
+        current_widget.page().runJavaScript(
+            """
+                function lineEndings() {
+                    var model = monaco.editor.getModels()[0];  // Get the first editor model
+                    var text = model.getValue();  // Get the content of the model
+                    var lineEndings = text.includes("\\r\\n") ? "CRLF" : "LF";  // Detect line endings
+                
+                    return lineEndings;
+                }
+                lineEndings();
+            """, self._on_line_endings_received)
 
         file_path = self.file_paths.get(current_widget, "Unknown File")
-        text = current_widget.toPlainText()
-
-        # Check if status bar actually needs to be updated
-        if self.line_col_label.text() != f"Ln {line}, Col {col}":
-            self.line_col_label.setText(f"Ln {line}, Col {col}")
+        encoding = self.detect_encoding(file_path)
 
         if self.spaces_label.text() != f"Spaces: 4":
             self.spaces_label.setText(f"Spaces: 4")
 
-        encoding = self.detect_encoding(file_path)
-
         if self.encoding_label.text() != encoding:
-            self.encoding_label.setText(encoding)
+            self.encoding_label.setText(encoding)        
 
-        line_endings = self.detect_line_endings(text)
-
-        if self.crlf_label.text() != f"{line_endings}":
-            self.crlf_label.setText(f"{line_endings}")
-
-        language = self.detect_language(file_path)
-
-        if self.language_label.text() != f"{language}":
-            self.language_label.setText(f"{language}")
+        current_widget.page().runJavaScript(
+            """
+                function language() {
+                    var language = monaco.editor.getModels()[0].getModeId(); // Get current language
+                
+                    return language;
+                }
+                language();
+            """, self._on_language_received)
 
         if self.version_label.text() != "3.10.0 ('.venv': venv)":
             self.version_label.setText("3.10.0 ('.venv': venv)")
@@ -142,6 +169,32 @@ class StatusBar(QHBoxLayout):
 
     def show_notifications(self):
         print("Notifications")
+
+    def _on_cursor_position(self, result):
+        """Callback for the cursor position returned by Monaco"""
+        if result:
+            line = result["line"]
+            col = result["col"]
+
+            # Update the line and column status in the status bar
+            if self.line_col_label.text() != f"Ln {line}, Col {col}":
+                self.line_col_label.setText(f"Ln {line}, Col {col}")
+
+    def _on_editor_content_received(self, content):
+        """Callback for the content of Monaco editor"""
+        # You can use this callback to handle other updates like word count, unsaved changes, etc.
+        pass
+
+    def _on_line_endings_received(self, line_endings):
+        """Callback for the line endings of the Monaco editor content"""
+        # Update the line endings status in the status bar
+        if self.crlf_label.text() != line_endings:
+            self.crlf_label.setText(line_endings)
+
+    def _on_language_received(self, language):
+        """Callback for the language mode of the Monaco editor"""
+        if self.language_label.text() != f"{language}":
+            self.language_label.setText(f"{language}")
 
 class StatusBarButton(QPushButton):
     def __init__(self, icon_path, icon_size, parent=None):
