@@ -3,12 +3,20 @@ import json, logging
 from PyQt6.QtCore import QUrl, QTimer
 from PyQt6.QtGui import QFont
 from PyQt6.QtWebEngineWidgets import QWebEngineView
+from PyQt6.QtWebEngineCore import QWebEngineSettings, QWebEngineProfile
 
 logging.basicConfig(level=logging.DEBUG, format="[%(asctime)s] [%(levelname)s] - %(message)s", datefmt="%d/%m/%Y %H:%M:%S")
 
 class MonacoEditor(QWebEngineView):
     def __init__(self, parent, object_name="MonacoEditor", font="Consolas", font_size=11, content=None, theme="vs-light"):
         super().__init__(parent)
+
+        profile = QWebEngineProfile.defaultProfile()
+
+        profile.settings().setAttribute(QWebEngineSettings.WebAttribute.LocalStorageEnabled, True)
+        profile.settings().setAttribute(QWebEngineSettings.WebAttribute.Accelerated2dCanvasEnabled, True)
+        profile.settings().setAttribute(QWebEngineSettings.WebAttribute.WebGLEnabled, True)
+        profile.settings().setAttribute(QWebEngineSettings.WebAttribute.PluginsEnabled, False)
 
         self.setObjectName(object_name)
         self.setFont(QFont(font, font_size))
@@ -35,6 +43,7 @@ class MonacoEditor(QWebEngineView):
                 <meta charset="UTF-8">
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
                 <title>Monaco Editor</title>
+                <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs/loader.js" as="script">
                 <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs/loader.js"></script>
                 <script>
                     require.config({ paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs' }}); 
@@ -214,3 +223,17 @@ class MonacoEditor(QWebEngineView):
         self.page().runJavaScript(f"monaco.editor.setTheme('{theme}');")
 
         logging.info(f"Theme set to: {theme}.")
+
+    def resize_monaco_editor(self):
+        """Resizes Monaco editor when the parent widget is resized."""
+        self.page().runJavaScript("""
+            if (window.monacoEditor) {
+                window.monacoEditor.layout();  // Adjust Monaco editor size to match the container's new size
+            }
+        """)
+
+    def resizeEvent(self, event):
+        """Override resizeEvent to trigger Monaco's resize when the window is resized."""
+        super().resizeEvent(event)
+        # Call Monaco resize on window resize
+        self.resize_monaco_editor()

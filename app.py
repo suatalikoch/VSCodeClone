@@ -1145,7 +1145,7 @@ class MainWindow(QMainWindow):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    app.setStyle('windowsvista')  # Sets the app style to Fusion (Qt's cross-platform style)
+    app.setStyle('windowsvista')
 
     window = MainWindow()
     window.show()
