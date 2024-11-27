@@ -68,7 +68,7 @@ class SideBar(QTreeView):
                     return
 
             # If the file is not already opened, create a new QTextEdit widget
-            new_tab = MonacoEditor(self)
+            new_tab = MonacoEditor(self, file_path=file_path)
 
             logging.info(f"Opening file: {file_path}.")
 

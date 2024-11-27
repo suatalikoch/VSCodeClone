@@ -1,4 +1,4 @@
-import json, logging
+import os, json, logging
 
 from PyQt6.QtCore import QUrl, QTimer
 from PyQt6.QtGui import QFont
@@ -8,7 +8,7 @@ from PyQt6.QtWebEngineCore import QWebEngineSettings, QWebEngineProfile
 logging.basicConfig(level=logging.DEBUG, format="[%(asctime)s] [%(levelname)s] - %(message)s", datefmt="%d/%m/%Y %H:%M:%S")
 
 class MonacoEditor(QWebEngineView):
-    def __init__(self, parent, object_name="MonacoEditor", font="Consolas", font_size=11, content=None, theme="vs-light"):
+    def __init__(self, parent, object_name="MonacoEditor", font="Consolas", font_size=11, content=None, theme="vs-light", file_path=None):
         super().__init__(parent)
 
         profile = QWebEngineProfile.defaultProfile()
@@ -32,6 +32,10 @@ class MonacoEditor(QWebEngineView):
             self.content = content
             QTimer.singleShot(1000, lambda: self.set_content(content))
 
+        self.file_path = file_path or ""
+        self.folder_path = os.path.dirname(self.file_path).split('/')[-1]
+        self.file_name = os.path.basename(self.file_path)
+
         self.setHtml(self.create_editor_html())
 
     def create_editor_html(self):
@@ -46,28 +50,125 @@ class MonacoEditor(QWebEngineView):
                 <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs/loader.js" as="script">
                 <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs/loader.js"></script>
                 <script>
-                    require.config({ paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs' }}); 
+                    let breakpoints = {};
+                    let decorations = {};
+                    
+                    require.config({ paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs' }});
                     require(['vs/editor/editor.main'], function () {
                         window.monacoEditor = monaco.editor.create(document.getElementById('container'), {
                             value: '',
                             language: 'python',
-                            theme: '""" + self.theme + """' 
+                            theme: '""" + self.theme + """',
+                            breadcrumbs: true,
+                            glyphMargin: true
                         });
+
                         window.isModified = false;
+
+                        window.monacoEditor.onDidChangeCursorPosition(function (e) {
+                            updateBreadcrumbs();
+                        });
+                        
                         window.monacoEditor.onDidChangeModelContent(function () {
                             window.isModified = true;
-                        })
+                            updateBreadcrumbs();
+                        });
+
+                        window.monacoEditor.onMouseDown(function (e) {
+                            if (e.target && e.target.type === monaco.editor.MouseTargetType.GUTTER_GLYPH_MARGIN) {
+                                const lineNumber = e.target.position.lineNumber;
+
+                                if (checkIfBreakpointSet(lineNumber)) {
+                                    removeBreakpoint(lineNumber);
+                                } else {
+                                    setBreakpoint(lineNumber);
+                                }
+                            }
+                        });
+
+                        function updateBreadcrumbs() {
+                            let className = "Unknown Class";
+                            let functionName = "Unknown Function";
+
+                            document.getElementById('breadcrumbs').innerHTML = `
+                                <span style="cursor: pointer;" onclick="window.location.href = '#'">""" + self.folder_path + """</span> 
+                                > <span style="cursor: pointer;" onclick="window.location.href = '#'">""" + self.file_name + """</span> 
+                                > <span style="cursor: pointer;">${className}</span>
+                                > <span style="cursor: pointer;">${functionName}</span>`;
+                        }
+
+                        function setBreakpoint(lineNumber) {
+                            const model = window.monacoEditor.getModel();
+                            const position = new monaco.Position(lineNumber, 1);
+                            const range = new monaco.Range(lineNumber, 1, lineNumber, 1);
+
+                            const newDecorations = [{
+                                range: range,
+                                options: {
+                                    isWholeLine: false,
+                                    glyphMarginClassName: 'red-circle',
+                                    glyphMarginHoverMessage: { value: 'Click to remove breakpoint' }
+                                }
+                            }];
+                            
+                            const decorationHandle = window.monacoEditor.deltaDecorations([], newDecorations);
+                            
+                            breakpoints[lineNumber] = true;
+                            decorations[lineNumber] = decorationHandle;
+
+                            console.log('Breakpoint set at line', lineNumber);
+                        }
+
+                        function removeBreakpoint(lineNumber) {
+                            const handles = decorations[lineNumber];
+                            
+                            if (handles) {
+                                window.monacoEditor.deltaDecorations(handles, []);
+                                
+                                delete breakpoints[lineNumber];
+                                delete decorations[lineNumber];
+
+                                console.log('Breakpoint removed at line', lineNumber);
+                            }
+                        }
+
+                        function checkIfBreakpointSet(lineNumber) {
+                            return breakpoints[lineNumber] || false;
+                        }
+
                         window.monacoReady = true;
                     });
                 </script>
                 <style>
+                    body, html {
+                        margin: 0;
+                        overflow: hidden;
+                    }
+                    #breadcrumbs {
+                        padding: 4px 16px;
+                        font-family: 'Consolas', monospace;
+                        font-size: 12px;
+                        color: #626262;
+                        overflow: hidden;
+                        white-space: nowrap;
+                        text-overflow: ellipsis;
+                    }
                     #container {
                         width: 100%;
                         height: 100vh;
                     }
+                    .red-circle {
+                        background-color: #e51400;
+                        border-radius: 50%;
+                        display: inline-block;
+                        width: 4px;
+                        height: 4px;
+                        margin-left: 8px;
+                    }
                 </style>
             </head>
             <body>
+                <div id="breadcrumbs">Unknown Folder > Unknown File > Unknown Class > Unknown Function</div>
                 <div id="container"></div>
             </body>
             </html>
@@ -226,11 +327,13 @@ class MonacoEditor(QWebEngineView):
 
     def resize_monaco_editor(self):
         """Resizes Monaco editor when the parent widget is resized."""
-        self.page().runJavaScript("""
-            if (window.monacoEditor) {
-                window.monacoEditor.layout();  // Adjust Monaco editor size to match the container's new size
-            }
-        """)
+        self.page().runJavaScript(
+            """
+                if (window.monacoEditor) {
+                    window.monacoEditor.layout();  // Adjust Monaco editor size to match the container's new size
+                }
+            """
+        )
 
     def resizeEvent(self, event):
         """Override resizeEvent to trigger Monaco's resize when the window is resized."""

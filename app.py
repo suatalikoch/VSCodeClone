@@ -478,7 +478,7 @@ class MainWindow(QMainWindow):
                 return
 
             # Add logic to handle the opened file, e.g., opening it in a new tab
-            new_tab = MonacoEditor(self)
+            new_tab = MonacoEditor(self, file_path=file_name)
 
             # Load the file content
             try:
