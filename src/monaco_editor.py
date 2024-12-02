@@ -1,6 +1,6 @@
 import os, json, logging
 
-from PyQt6.QtCore import QUrl, QTimer
+from PyQt6.QtCore import QTimer
 from PyQt6.QtGui import QFont
 from PyQt6.QtWebEngineWidgets import QWebEngineView
 from PyQt6.QtWebEngineCore import QWebEngineSettings, QWebEngineProfile
@@ -12,7 +12,6 @@ class MonacoEditor(QWebEngineView):
         super().__init__(parent)
 
         profile = QWebEngineProfile.defaultProfile()
-
         profile.settings().setAttribute(QWebEngineSettings.WebAttribute.LocalStorageEnabled, True)
         profile.settings().setAttribute(QWebEngineSettings.WebAttribute.Accelerated2dCanvasEnabled, True)
         profile.settings().setAttribute(QWebEngineSettings.WebAttribute.WebGLEnabled, True)
@@ -20,7 +19,6 @@ class MonacoEditor(QWebEngineView):
 
         self.setObjectName(object_name)
         self.setFont(QFont(font, font_size))
-        self.setUrl(QUrl("https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs/loader.js"))
         self.loadFinished.connect(self.setup_monaco_editor)
 
         self.monaco_ready = False
@@ -40,139 +38,10 @@ class MonacoEditor(QWebEngineView):
 
     def create_editor_html(self):
         """Generates the HTML needed to initialize Monaco editor."""
-        return """
-            <!DOCTYPE html>
-            <html lang="en">
-            <head>
-                <meta charset="UTF-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>Monaco Editor</title>
-                <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs/loader.js" as="script">
-                <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs/loader.js"></script>
-                <script>
-                    let breakpoints = {};
-                    let decorations = {};
-                    
-                    require.config({ paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs' }});
-                    require(['vs/editor/editor.main'], function () {
-                        window.monacoEditor = monaco.editor.create(document.getElementById('container'), {
-                            value: '',
-                            language: 'python',
-                            theme: '""" + self.theme + """',
-                            breadcrumbs: true,
-                            glyphMargin: true
-                        });
+        with open("D:/Projects/GitHub/VSCodeClone/html/monaco_editor.html", 'r') as file:
+            html_content = file.read()
 
-                        window.isModified = false;
-
-                        window.monacoEditor.onDidChangeCursorPosition(function (e) {
-                            updateBreadcrumbs();
-                        });
-                        
-                        window.monacoEditor.onDidChangeModelContent(function () {
-                            window.isModified = true;
-                            updateBreadcrumbs();
-                        });
-
-                        window.monacoEditor.onMouseDown(function (e) {
-                            if (e.target && e.target.type === monaco.editor.MouseTargetType.GUTTER_GLYPH_MARGIN) {
-                                const lineNumber = e.target.position.lineNumber;
-
-                                if (checkIfBreakpointSet(lineNumber)) {
-                                    removeBreakpoint(lineNumber);
-                                } else {
-                                    setBreakpoint(lineNumber);
-                                }
-                            }
-                        });
-
-                        function updateBreadcrumbs() {
-                            let className = "Unknown Class";
-                            let functionName = "Unknown Function";
-
-                            document.getElementById('breadcrumbs').innerHTML = `
-                                <span style="cursor: pointer;" onclick="window.location.href = '#'">""" + self.folder_path + """</span> 
-                                > <span style="cursor: pointer;" onclick="window.location.href = '#'">""" + self.file_name + """</span> 
-                                > <span style="cursor: pointer;">${className}</span>
-                                > <span style="cursor: pointer;">${functionName}</span>`;
-                        }
-
-                        function setBreakpoint(lineNumber) {
-                            const model = window.monacoEditor.getModel();
-                            const position = new monaco.Position(lineNumber, 1);
-                            const range = new monaco.Range(lineNumber, 1, lineNumber, 1);
-
-                            const newDecorations = [{
-                                range: range,
-                                options: {
-                                    isWholeLine: false,
-                                    glyphMarginClassName: 'red-circle',
-                                    glyphMarginHoverMessage: { value: 'Click to remove breakpoint' }
-                                }
-                            }];
-                            
-                            const decorationHandle = window.monacoEditor.deltaDecorations([], newDecorations);
-                            
-                            breakpoints[lineNumber] = true;
-                            decorations[lineNumber] = decorationHandle;
-
-                            console.log('Breakpoint set at line', lineNumber);
-                        }
-
-                        function removeBreakpoint(lineNumber) {
-                            const handles = decorations[lineNumber];
-                            
-                            if (handles) {
-                                window.monacoEditor.deltaDecorations(handles, []);
-                                
-                                delete breakpoints[lineNumber];
-                                delete decorations[lineNumber];
-
-                                console.log('Breakpoint removed at line', lineNumber);
-                            }
-                        }
-
-                        function checkIfBreakpointSet(lineNumber) {
-                            return breakpoints[lineNumber] || false;
-                        }
-
-                        window.monacoReady = true;
-                    });
-                </script>
-                <style>
-                    body, html {
-                        margin: 0;
-                        overflow: hidden;
-                    }
-                    #breadcrumbs {
-                        padding: 4px 16px;
-                        font-family: 'Consolas', monospace;
-                        font-size: 12px;
-                        color: #626262;
-                        overflow: hidden;
-                        white-space: nowrap;
-                        text-overflow: ellipsis;
-                    }
-                    #container {
-                        width: 100%;
-                        height: 100vh;
-                    }
-                    .red-circle {
-                        background-color: #e51400;
-                        border-radius: 50%;
-                        display: inline-block;
-                        width: 4px;
-                        height: 4px;
-                        margin-left: 8px;
-                    }
-                </style>
-            </head>
-            <body>
-                <div id="breadcrumbs">Unknown Folder > Unknown File > Unknown Class > Unknown Function</div>
-                <div id="container"></div>
-            </body>
-            </html>
-        """
+        return html_content
 
     def setup_monaco_editor(self):
         """This method will be called when the page finishes loading"""

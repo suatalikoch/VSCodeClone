@@ -241,8 +241,8 @@ class MainWindow(QMainWindow):
                 widget.setText(content)
 
         # Connect the textChanged signal to a method that checks for problems and updates status_bar
-        widget.textChanged.connect(self.check_for_problems)
-        widget.cursorPositionChanged.connect(self.status_bar.update_status_bar)
+        #widget.textChanged.connect(self.check_for_problems)
+        #widget.cursorPositionChanged.connect(self.status_bar.update_status_bar)
 
         return widget
 

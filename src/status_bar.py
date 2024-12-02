@@ -94,6 +94,8 @@ class StatusBar(QHBoxLayout):
         if not isinstance(current_widget, MonacoEditor):
             return
 
+        return 
+    
         current_widget.page().runJavaScript(
             """
                 function cursorPosition() {
