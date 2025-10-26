@@ -35,11 +35,8 @@ This project is a fully-featured code editor with multiple tabs, sidebar, panels
 
 ## Screenshots
 
-![Welcome Screen](resources/screenshots/Screenshot1.png)  
-_Welcome Tab_
-
-![Editor Tabs](resources/screenshots/Screenshot2.png)  
-_Multiple tabs with MonacoEditor_
+![Welcome Screen](resources/images/screenshots/Screenshot1.png)  
+![Editor Tabs](resources/images/screenshots/Screenshot2.png)  
 
 ---
 
